@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>King Charmer Clothing Brand | Elite Luxury Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Montserrat:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --gold: #d4af37; --gold-glow: rgba(212, 175, 55, 0.2); --dark-void: #0a0a0a; --panel-bg: #121212; --input-bg: #1a1a1a; --text-pure: #ffffff; --text-dim: #999999; --whatsapp-green: #25d366; }
+        body { background-color: var(--dark-void); color: var(--text-pure); font-family: 'Montserrat', sans-serif; overflow-x: hidden; }
+        header { text-align: center; padding: 50px 20px; background: linear-gradient(180deg, #000000 0%, var(--dark-void) 100%); border-bottom: 1px solid #1c1c1c; }
+        h1 { font-family: 'Cinzel', serif; font-size: 3.5rem; letter-spacing: 10px; background: linear-gradient(135deg, #ffffff 30%, #a6a6a6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 30px var(--gold-glow); }
+        .sub-tag { font-family: 'Cinzel', serif; font-size: 0.9rem; color: var(--gold); letter-spacing: 5px; text-transform: uppercase; margin-top: 8px; }
+        .luxury-container { max-width: 1440px; margin: 0 auto; padding: 60px 40px; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 40px; }
+        .product-card { background: var(--panel-bg); border: 1px solid #1a1a1a; border-radius: 8px; overflow: hidden; position: relative; transition: all 0.4s ease; }
+        .product-card:hover { transform: translateY(-8px); border-color: var(--gold); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6); }
+        .image-box { width: 100%; height: 360px; background: #0d0d0d; display: flex; align-items: center; justify-content: center; }
+        .image-box img { width: 100%; height: 100%; object-fit: cover; }
+        .details-box { padding: 25px; }
+        .pricing { font-size: 1.3rem; font-weight: 700; color: var(--text-pure); margin-bottom: 20px; }
+        .btn-buy-now { background: var(--text-pure); color: #000; border: none; padding: 12px; width: 100%; font-weight: 700; cursor: pointer; }
+        .btn-pod { background: transparent; color: var(--text-pure); border: 1px solid #333; padding: 12px; width: 100%; cursor: pointer; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: #141414; width: 90%; max-width: 500px; border-radius: 12px; padding: 40px; }
+        .action-submit-btn { width: 100%; background: var(--whatsapp-green); color: #ffffff; border: none; padding: 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>KING CHARMER</h1>
+        <p class="sub-tag">The Royal Realm of Fashion</p>
+    </header>
+
+    <main class="luxury-container">
+        <div class="products-grid" id="products-grid"></div>
+    </main>
+
+    <div class="modal-overlay" id="checkout-modal">
+        <div class="modal-box">
+            <button onclick="closeModal()" style="float:right; background:none; border:none; color:white; cursor:pointer;">&times;</button>
+            <h3 id="modal-title" style="color:var(--gold);">Secure Checkout</h3>
+            <p id="modal-product-name" style="margin-bottom:20px;"></p>
+            <form id="checkout-form" onsubmit="handleFormSubmit(event)">
+                <input type="hidden" id="submit-type">
+                <input type="text" id="cust-name" placeholder="Full Name" required style="width:100%; padding:10px; margin-bottom:10px;">
+                <input type="tel" id="cust-phone" placeholder="Phone Number" required style="width:100%; padding:10px; margin-bottom:10px;">
+                <textarea id="cust-address" placeholder="Delivery Address" required style="width:100%; padding:10px; margin-bottom:10px;"></textarea>
+                <button type="submit" class="action-submit-btn">Complete Order via WhatsApp <i class="fa-brands fa-whatsapp"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const WHATSAPP_NUMBER = "2347086312481";
+        let selectedProduct = null;
+
+        const kingCharmerProducts = [
+            { id: 1, name: "King Charmer Onyx Hooded M/F", price: 185000, stars: 5, img: "1.jpg" },
+            { id: 2, name: "Charcoal Cotton Graphic T-Shirt", price: 85000, stars: 4, img: "11.jpg" },
+            // ... (keep the rest of your array, just ensure pricing is in Naira)
+        ];
+
+        function renderLuxuryCatalog() {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+            kingCharmerProducts.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="image-box">${product.img ? `<img src="${product.img}" alt="${product.name}">` : `<div class="media-placeholder">KC</div>`}</div>
+                    <div class="details-box">
+                        <div class="item-title">${product.name}</div>
+                        <div class="pricing">₦${product.price.toLocaleString()}</div>
+                        <div class="action-row" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                            <button class="btn-buy-now" onclick="openCheckout(${product.id}, 'buynow')">Buy Now</button>
+                            <button class="btn-pod" onclick="openCheckout(${product.id}, 'pod')">P.O.D</button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openCheckout(productId, checkoutType) {
+            selectedProduct = kingCharmerProducts.find(p => p.id === productId);
+            document.getElementById('modal-product-name').textContent = `${selectedProduct.name} — ₦${selectedProduct.price.toLocaleString()}`;
+            document.getElementById('submit-type').value = checkoutType;
+            document.getElementById('checkout-modal').classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('checkout-modal').classList.remove('active'); }
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const name = document.getElementById('cust-name').value;
+            const phone = document.getElementById('cust-phone').value;
+            const address = document.getElementById('cust-address').value;
+            const type = document.getElementById('submit-type').value;
+
+            const message = `👑 *KING CHARMER ORDER* 👑\n\n🛍️ *Item:* ${selectedProduct.name}\n💰 *Price:* ₦${selectedProduct.price.toLocaleString()}\n👤 *Client:* ${name}\n📞 *Contact:* ${phone}\n📍 *Address:* ${address}`;
+            window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+            closeModal();
+        }
+
+        document.addEventListener('DOMContentLoaded', renderLuxuryCatalog);
+    </script>
+</body>
+</html>
